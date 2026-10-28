@@ -132,6 +132,52 @@ footer{padding:32px 15px;background:#061a33;color:#fff;text-align:center}footer 
 @media(max-width:850px){.hero{padding:55px 5%;gap:25px}.hero h1{font-size:40px}.products{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){header{padding:13px 18px}.logo{font-size:21px}.header-btn{padding:9px 12px;font-size:12px}.hero{display:block;text-align:center;padding:45px 18px 35px}.hero-content,.hero-image{width:100%}.hero h1{font-size:32px}.hero p{font-size:15px}.hero-image{margin:28px auto 0;max-width:400px}.services,.how,#complaintForm,#statusSection{padding:45px 18px}.section-head h2{font-size:28px}.products{gap:12px;margin-top:25px}.product-card{padding:13px 9px}.product-icon{height:125px}.product-card h3{font-size:16px}.product-card p{font-size:12px}.product-card button{font-size:13px;padding:10px 5px}.steps{gap:12px}.step{padding:18px 10px}.step h3{font-size:15px}.step p{font-size:12px}.complaint-box{padding:21px 16px;border-radius:17px}.complaint-box h2{font-size:23px}.timeline span{font-size:9px}}
 @media(max-width:380px){.products{grid-template-columns:1fr}.product-icon{height:175px}.steps{grid-template-columns:1fr}.hero h1{font-size:29px}}
+
+/* My ElectroCare complaint success celebration */
+.success-overlay{
+  display:none; position:fixed; inset:0; z-index:99999;
+  background:rgba(4,16,35,.72); backdrop-filter:blur(5px);
+  align-items:center; justify-content:center; padding:18px;
+}
+.success-overlay.show{display:flex; animation:overlayIn .25s ease-out}
+.success-modal{
+  position:relative; overflow:hidden; width:min(100%,440px);
+  background:#fff; border-radius:24px; padding:34px 24px 26px;
+  text-align:center; box-shadow:0 25px 80px #0005;
+  animation:modalPop .45s cubic-bezier(.18,.89,.32,1.28);
+}
+.success-icon{
+  width:82px;height:82px;margin:0 auto 15px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:#dcfce7;color:#15803d;font-size:44px;
+  box-shadow:0 0 0 10px #dcfce755;
+}
+.success-modal h2{font-size:25px;color:#0f172a;margin:8px 0}
+.success-modal p{color:#64748b;margin:8px 0}
+.success-id{
+  margin:18px 0;padding:13px;border:1px dashed #16a34a;
+  background:#f0fdf4;border-radius:13px;color:#166534;font-weight:800;
+  font-size:20px;letter-spacing:.4px;overflow-wrap:anywhere;
+}
+.success-note{font-size:13px!important}
+.success-continue{
+  width:100%;border:0;border-radius:12px;padding:14px 18px;
+  margin-top:12px;background:#087ff5;color:white;font-weight:800;
+  box-shadow:0 7px 18px #087ff533;
+}
+.success-continue:hover{background:#0668cc}
+.confetti-piece{
+  position:fixed;top:-18px;z-index:100000;width:9px;height:14px;
+  pointer-events:none;animation:confettiFall var(--fall-time,2.7s) linear forwards;
+  transform:rotate(var(--rot,0deg));
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes modalPop{from{opacity:0;transform:translateY(20px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes confettiFall{to{transform:translate3d(var(--drift,50px),110vh,0) rotate(900deg);opacity:.9}}
+@media(prefers-reduced-motion:reduce){
+ .success-overlay.show,.success-modal,.confetti-piece{animation:none!important}
+}
+
 </style>
 </head>
 
@@ -206,6 +252,20 @@ footer{padding:32px 15px;background:#061a33;color:#fff;text-align:center}footer 
 </div>
 </section>
 
+
+<!-- Custom success celebration popup -->
+<div id="successOverlay" class="success-overlay" role="dialog" aria-modal="true"
+     aria-labelledby="successTitle">
+  <div class="success-modal">
+    <div class="success-icon" aria-hidden="true">✓</div>
+    <h2 id="successTitle">Complaint Successfully Submitted!</h2>
+    <p>Your service request has been received.</p>
+    <div class="success-id">Complaint ID: <span id="successComplaintId"></span></div>
+    <p class="success-note">Please save your Complaint ID to check your status later.</p>
+    <button type="button" class="success-continue" onclick="closeSuccessModal()">Continue</button>
+  </div>
+</div>
+
 <footer><h2>⚡ My ElectroCare</h2><p>Electronics Repair & Home Service</p><p style="margin-top:8px">Professional service at your doorstep.</p></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -213,6 +273,47 @@ footer{padding:32px 15px;background:#061a33;color:#fff;text-align:center}footer 
 const SUPABASE_URL = "https://gbtqdwrrgcxomwhthban.supabase.co";
 const SUPABASE_KEY = "sb_publishable_UK8p20y1pifgQqEwxzo3Mw_Da5SKxD3";
 const supabaseClient = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+
+function showSuccessModal(complaintId){
+  const overlay = document.getElementById("successOverlay");
+  document.getElementById("successComplaintId").textContent = String(complaintId);
+  overlay.classList.add("show");
+  document.body.style.overflow = "hidden";
+  launchConfetti();
+  const continueButton = overlay.querySelector("button");
+  if(continueButton) continueButton.focus();
+}
+
+function closeSuccessModal(){
+  const overlay = document.getElementById("successOverlay");
+  overlay.classList.remove("show");
+  document.body.style.overflow = "";
+  document.getElementById("customerName").focus();
+}
+
+function launchConfetti(){
+  // Clear any leftover confetti if the user submits another complaint.
+  document.querySelectorAll(".confetti-piece").forEach(piece => piece.remove());
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const colors = ["#087ff5","#16a34a","#facc15","#f97316","#ec4899","#8b5cf6","#06b6d4"];
+  const count = window.innerWidth < 600 ? 75 : 125;
+
+  for(let i=0; i<count; i++){
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = (Math.random() * 100) + "vw";
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.setProperty("--fall-time", (2.1 + Math.random() * 1.8) + "s");
+    piece.style.setProperty("--drift", ((Math.random() - .5) * 260) + "px");
+    piece.style.setProperty("--rot", (Math.random() * 360) + "deg");
+    piece.style.animationDelay = (Math.random() * .45) + "s";
+    if(Math.random() > .5) piece.style.borderRadius = "50%";
+    document.body.appendChild(piece);
+    piece.addEventListener("animationend", () => piece.remove(), {once:true});
+  }
+}
 
 function scrollToServices(){document.getElementById("services").scrollIntoView({behavior:"smooth"})}
 function scrollToStatus(){document.getElementById("statusSection").scrollIntoView({behavior:"smooth"})}
@@ -330,11 +431,7 @@ async function submitComplaint(){
 
   const complaintId = data;
 
-  alert(
-    "✅ Complaint successfully submitted!\n\n" +
-    "Complaint ID: " + complaintId +
-    "\n\nIs Complaint ID ko save karke rakhein."
-  );
+  showSuccessModal(complaintId);
 
   /* RESET FORM */
 
