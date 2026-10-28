@@ -120,6 +120,9 @@ button{
     border-radius:14px;
     box-shadow:0 3px 12px rgba(0,0,0,.06);
 }
+.dashboard .card{cursor:pointer;border:2px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s;}
+.dashboard .card:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.10);}
+.dashboard .card.active-filter{border-color:#087ff5;background:#eff6ff;}
 
 .card h3{
     margin:0 0 10px;
@@ -476,7 +479,7 @@ th{
 
         <div class="dashboard">
 
-            <div class="card">
+            <div class="card" role="button" tabindex="0" data-filter="all" onclick="setStatusFilter('all')" onkeydown="if(event.key==='Enter'||event.key===' ')setStatusFilter('all')">
 
                 <h3>Total Complaints</h3>
 
@@ -487,7 +490,7 @@ th{
             </div>
 
 
-            <div class="card">
+            <div class="card" role="button" tabindex="0" data-filter="Pending" onclick="setStatusFilter('Pending')" onkeydown="if(event.key==='Enter'||event.key===' ')setStatusFilter('Pending')">
 
                 <h3>🟡 Pending</h3>
 
@@ -498,7 +501,7 @@ th{
             </div>
 
 
-            <div class="card">
+            <div class="card" role="button" tabindex="0" data-filter="Accepted" onclick="setStatusFilter('Accepted')" onkeydown="if(event.key==='Enter'||event.key===' ')setStatusFilter('Accepted')">
 
                 <h3>🔵 Accepted</h3>
 
@@ -509,7 +512,7 @@ th{
             </div>
 
 
-            <div class="card">
+            <div class="card" role="button" tabindex="0" data-filter="Rejected" onclick="setStatusFilter('Rejected')" onkeydown="if(event.key==='Enter'||event.key===' ')setStatusFilter('Rejected')">
 
                 <h3>🔴 Rejected</h3>
 
@@ -520,7 +523,7 @@ th{
             </div>
 
 
-            <div class="card">
+            <div class="card" role="button" tabindex="0" data-filter="Completed" onclick="setStatusFilter('Completed')" onkeydown="if(event.key==='Enter'||event.key===' ')setStatusFilter('Completed')">
 
                 <h3>🟢 Completed</h3>
 
@@ -537,21 +540,16 @@ th{
 
         <div class="table-box">
 
-            <div class="table-top">
-
-                <h2>
-                    📋 Customer Complaints
-                </h2>
-
-                <button
-                    class="refresh-btn"
-                    onclick="loadComplaints()">
-
-                    🔄 Refresh
-
-                </button>
-
+            <div class="table-top" style="flex-wrap:wrap;">
+                <h2 style="margin:0;">📋 Customer Complaints</h2>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                    <input id="complaintSearch" type="search" placeholder="Search ID, name, mobile..."
+                        oninput="renderComplaints()" style="padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;min-width:230px;">
+                    <button class="refresh-btn" onclick="exportComplaintsCSV()" style="background:#0f766e;">⬇️ Export CSV</button>
+                    <button class="refresh-btn" onclick="loadComplaints()">🔄 Refresh</button>
+                </div>
             </div>
+            <p id="activeFilterLabel" style="margin:0 0 12px;color:#64748b;">Showing: All complaints</p>
 
 
             <div style="overflow-x:auto;">
@@ -591,6 +589,20 @@ th{
 
             </div>
 
+        </div>
+
+        <div class="table-box" style="margin-top:22px;">
+            <div class="table-top" style="flex-wrap:wrap;"><h2 style="margin:0;">🧰 Manage Mechanics</h2></div>
+            <p style="color:#64748b;">Mechanic ko ek baar add karein; phir complaint ke View panel se assign kar sakte hain.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">
+                <input id="mechanicName" type="text" placeholder="Mechanic name" style="padding:12px;border:1px solid #cbd5e1;border-radius:8px;">
+                <input id="mechanicMobile" type="tel" placeholder="Mobile number" style="padding:12px;border:1px solid #cbd5e1;border-radius:8px;">
+                <button class="refresh-btn" onclick="addMechanic()">＋ Add Mechanic</button>
+            </div>
+            <div style="overflow-x:auto;"><table style="min-width:500px;">
+                <thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="mechanicsList"><tr><td colspan="4" class="empty">Login to load mechanics.</td></tr></tbody>
+            </table></div>
         </div>
 
     </div>
@@ -736,6 +748,23 @@ th{
 
         </div>
 
+
+        <div style="margin-top:22px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+            <h3 style="margin:0 0 12px;">🧰 Mechanic Assignment & Visit Tracking</h3>
+            <label for="assignedMechanic" style="display:block;font-weight:bold;margin:8px 0 5px;">Assign Mechanic</label>
+            <select id="assignedMechanic" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;"><option value="">-- Not assigned --</option></select>
+            <label for="visitDate" style="display:block;font-weight:bold;margin:12px 0 5px;">Visit Date & Time</label>
+            <input id="visitDate" type="datetime-local" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;">
+            <label for="visitStatus" style="display:block;font-weight:bold;margin:12px 0 5px;">Visit Status</label>
+            <select id="visitStatus" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;">
+                <option>Not Assigned</option><option>Assigned</option><option>Visit Scheduled</option><option>On the Way</option><option>Visited</option><option>Repair Completed</option>
+            </select>
+            <label for="estimatedCharges" style="display:block;font-weight:bold;margin:12px 0 5px;">Estimated Charges (₹)</label>
+            <input id="estimatedCharges" type="number" min="0" step="0.01" value="0" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;">
+            <label for="complaintPaymentStatus" style="display:block;font-weight:bold;margin:12px 0 5px;">Payment Status</label>
+            <select id="complaintPaymentStatus" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;"><option>Unpaid</option><option>Partially Paid</option><option>Paid</option></select>
+            <button class="save-btn" onclick="saveAssignment()">💾 Save Assignment & Visit Details</button>
+        </div>
 
         <div id="viewPhoto"
              style="margin-top:20px;">
@@ -1030,10 +1059,11 @@ th{
    SUPABASE CONFIG
 ===================================== */
 
-const SUPABASE_URL ="https://gbtqdwrrgcxomwhthban.supabase.co";
-  
+/* IMPORTANT: Add back the existing working Supabase URL and ANON KEY before publishing.
+   They were blank in the uploaded copy; no credentials have been invented. */
+const SUPABASE_URL = "https://gbtqdwrrgcxomwhthban.supabase.co";
 
-const SUPABASE_ANON_KEY ="sb_publishable_UK8p20y1pifgQqEwxzo3Mw_Da5SKxD3";
+const SUPABASE_ANON_KEY = "sb_publishable_UK8p20y1pifgQqEwxzo3Mw_Da5SKxD3";
 
 
 
@@ -1050,6 +1080,9 @@ const supabaseClient =
 let currentComplaint = null;
 let currentInvoice = null;
 let invoiceParts = [];
+let allComplaints = [];
+let allMechanics = [];
+let activeStatusFilter = "all";
 
 
 /* =====================================
@@ -1182,223 +1215,78 @@ async function checkAdminSession(){
 ===================================== */
 
 async function loadComplaints(){
-
-    const { data: userData } =
-        await supabaseClient.auth.getUser();
-
-
-    if(!userData || !userData.user){
-
-        return;
-    }
-
-
-    const { data, error } =
-        await supabaseClient
-        .from("Complaints")
-        .select("*")
-        .order(
-            "created_at",
-            {
-                ascending:false
-            }
-        );
-
-
+    const { data: userData } = await supabaseClient.auth.getUser();
+    if(!userData || !userData.user) return;
+    const { data, error } = await supabaseClient.from("Complaints").select("*").order("created_at",{ascending:false});
     if(error){
-
-        console.error(
-            "Load error:",
-            error
-        );
-
-        alert(
-            "❌ Complaints load nahi hui:\n\n" +
-            error.message
-        );
-
+        console.error("Load error:", error);
+        alert("❌ Complaints load nahi hui:\n\n" + error.message);
         return;
     }
-
-
-    const complaints =
-        data || [];
-
-
-    /* COUNTS */
-
-    document
-        .getElementById("totalComplaints")
-        .innerText =
-        complaints.length;
-
-
-    document
-        .getElementById("pendingComplaints")
-        .innerText =
-        complaints.filter(
-            x => x.status === "Pending"
-        ).length;
-
-
-    document
-        .getElementById("acceptedComplaints")
-        .innerText =
-        complaints.filter(
-            x => x.status === "Accepted"
-        ).length;
-
-
-    document
-        .getElementById("rejectedComplaints")
-        .innerText =
-        complaints.filter(
-            x => x.status === "Rejected"
-        ).length;
-
-
-    document
-        .getElementById("completedComplaints")
-        .innerText =
-        complaints.filter(
-            x => x.status === "Completed"
-        ).length;
-
-
-    const list =
-        document.getElementById(
-            "complaintList"
-        );
-
-
-    if(!complaints.length){
-
-        list.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="8"
-                    class="empty">
-
-                    No complaints found.
-
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-    }
-
-
-    list.innerHTML = "";
-
-
-    complaints.forEach(
-        function(c){
-
-            let statusClass =
-                "pending";
-
-
-            if(c.status === "Accepted"){
-
-                statusClass =
-                    "accepted";
-
-            }
-
-            else if(c.status === "Rejected"){
-
-                statusClass =
-                    "rejected";
-
-            }
-
-            else if(c.status === "Completed"){
-
-                statusClass =
-                    "completed";
-
-            }
-
-
-            list.innerHTML += `
-
-                <tr>
-
-                    <td>
-                        ${c.id ?? "-"}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            c.customer_name || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            c.mobile || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            c.product || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            c.company || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            c.problem || "-"
-                        )}
-                    </td>
-
-                    <td>
-
-                        <span
-                            class="status ${statusClass}">
-
-                            ${escapeHTML(
-                                c.status || "Pending"
-                            )}
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="view-btn"
-                            onclick="
-                                viewComplaint(${c.id})
-                            ">
-
-                            👁️ View
-
-                        </button>
-
-                    </td>
-
-                </tr>
-
-            `;
-
-        }
-    );
-
+    allComplaints = data || [];
+    updateDashboardCounts();
+    renderComplaints();
+    await loadMechanics();
 }
 
+function updateDashboardCounts(){
+    document.getElementById("totalComplaints").innerText = allComplaints.length;
+    document.getElementById("pendingComplaints").innerText = allComplaints.filter(x=>x.status==="Pending").length;
+    document.getElementById("acceptedComplaints").innerText = allComplaints.filter(x=>x.status==="Accepted").length;
+    document.getElementById("rejectedComplaints").innerText = allComplaints.filter(x=>x.status==="Rejected").length;
+    document.getElementById("completedComplaints").innerText = allComplaints.filter(x=>x.status==="Completed").length;
+}
+
+function setStatusFilter(status){
+    activeStatusFilter = status;
+    document.querySelectorAll(".dashboard .card").forEach(card=>{
+        card.classList.toggle("active-filter",card.dataset.filter===status);
+    });
+    renderComplaints();
+}
+
+function renderComplaints(){
+    const list = document.getElementById("complaintList");
+    const search = (document.getElementById("complaintSearch")?.value || "").trim().toLowerCase();
+    const rows = allComplaints.filter(c=>{
+        const statusMatch = activeStatusFilter==="all" || c.status===activeStatusFilter;
+        const haystack = [c.id,c.customer_name,c.mobile,c.product,c.company,c.problem].join(" ").toLowerCase();
+        return statusMatch && haystack.includes(search);
+    });
+    const filterName = activeStatusFilter==="all" ? "All complaints" : activeStatusFilter+" complaints";
+    document.getElementById("activeFilterLabel").innerText = `Showing: ${filterName} (${rows.length})`;
+    if(!rows.length){
+        list.innerHTML = `<tr><td colspan="8" class="empty">No complaints match this filter/search.</td></tr>`;
+        return;
+    }
+    list.innerHTML = rows.map(c=>{
+        const statusClass = String(c.status||"Pending").toLowerCase();
+        return `<tr>
+            <td>${escapeHTML(c.id ?? "-")}</td><td>${escapeHTML(c.customer_name || "-")}</td>
+            <td>${escapeHTML(c.mobile || "-")}</td><td>${escapeHTML(c.product || "-")}</td>
+            <td>${escapeHTML(c.company || "-")}</td><td>${escapeHTML(c.problem || "-")}</td>
+            <td><span class="status ${statusClass}">${escapeHTML(c.status || "Pending")}</span></td>
+            <td><button class="view-btn" onclick="viewComplaint(${Number(c.id)})">👁️ View</button></td>
+        </tr>`;
+    }).join("");
+}
+
+function exportComplaintsCSV(){
+    const search = (document.getElementById("complaintSearch")?.value || "").trim().toLowerCase();
+    const rows = allComplaints.filter(c=>{
+        const statusMatch = activeStatusFilter==="all" || c.status===activeStatusFilter;
+        const haystack = [c.id,c.customer_name,c.mobile,c.product,c.company,c.problem].join(" ").toLowerCase();
+        return statusMatch && haystack.includes(search);
+    });
+    if(!rows.length){ alert("Export karne ke liye koi complaint nahi hai."); return; }
+    const columns = [["Complaint ID","id"],["Customer","customer_name"],["Mobile","mobile"],["Product","product"],["Company","company"],["Problem","problem"],["Status","status"],["Mechanic ID","assigned_mechanic_id"],["Visit Date","visit_date"],["Visit Status","visit_status"],["Estimated Charges","estimated_charges"],["Payment Status","payment_status"]];
+    const csvCell = value => `"${String(value ?? "").replace(/"/g,'""')}"`;
+    const csv = [columns.map(x=>csvCell(x[0])).join(","), ...rows.map(row=>columns.map(x=>csvCell(row[x[1]])).join(","))].join("\r\n");
+    const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href=url; a.download=`My-ElectroCare-Complaints-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
 
 /* =====================================
    ESCAPE HTML
@@ -1415,6 +1303,71 @@ function escapeHTML(value){
 
 }
 
+
+/* =====================================
+   MECHANIC MANAGEMENT + ASSIGNMENT
+===================================== */
+async function loadMechanics(){
+    const {data,error} = await supabaseClient.from("mechanics").select("*").order("name",{ascending:true});
+    const tbody = document.getElementById("mechanicsList");
+    if(error){
+        console.warn("Mechanics setup may be pending:",error.message);
+        if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="empty">Mechanic setup pending. Run the supplied SQL setup first.</td></tr>`;
+        allMechanics = []; populateMechanicSelect(); return;
+    }
+    allMechanics = data || [];
+    if(tbody) tbody.innerHTML = allMechanics.length ? allMechanics.map(m=>`<tr>
+        <td>${escapeHTML(m.name||"-")}</td><td>${escapeHTML(m.mobile||"-")}</td><td>${m.active===false?"Inactive":"Active"}</td>
+        <td><button style="padding:7px 10px;border:0;border-radius:7px;color:white;background:${m.active===false?"#16a34a":"#dc2626"}" onclick="toggleMechanic(${Number(m.id)},${m.active===false?'true':'false'})">${m.active===false?"Activate":"Deactivate"}</button></td>
+    </tr>`).join("") : `<tr><td colspan="4" class="empty">Abhi koi mechanic add nahi hai.</td></tr>`;
+    populateMechanicSelect();
+}
+
+function populateMechanicSelect(selectedId){
+    const select = document.getElementById("assignedMechanic");
+    if(!select) return;
+    select.innerHTML = `<option value="">-- Not assigned --</option>` + allMechanics.filter(m=>m.active!==false).map(m=>`<option value="${Number(m.id)}">${escapeHTML(m.name)} — ${escapeHTML(m.mobile||"")}</option>`).join("");
+    if(selectedId!==undefined && selectedId!==null) select.value = String(selectedId);
+}
+
+async function addMechanic(){
+    const name = document.getElementById("mechanicName").value.trim();
+    const mobile = document.getElementById("mechanicMobile").value.trim();
+    if(!name || !mobile){ alert("Mechanic ka naam aur mobile number enter karein."); return; }
+    const {data:userData} = await supabaseClient.auth.getUser();
+    if(!userData?.user){ alert("Please login first."); return; }
+    const {error} = await supabaseClient.from("mechanics").insert({name,mobile,active:true});
+    if(error){ alert("Mechanic add nahi hua:\n\n"+error.message); return; }
+    document.getElementById("mechanicName").value = ""; document.getElementById("mechanicMobile").value = "";
+    await loadMechanics(); alert("✅ Mechanic add ho gaya.");
+}
+
+async function toggleMechanic(id,active){
+    if(!confirm(`Is mechanic ko ${active?"activate":"deactivate"} karna hai?`)) return;
+    const {error} = await supabaseClient.from("mechanics").update({active}).eq("id",id);
+    if(error){ alert("Mechanic update nahi hua:\n\n"+error.message); return; }
+    await loadMechanics();
+}
+
+async function saveAssignment(){
+    if(!currentComplaint){ alert("Pehle complaint select karein."); return; }
+    const mechanicValue = document.getElementById("assignedMechanic").value;
+    const visitStatus = document.getElementById("visitStatus").value;
+    const visitDateValue = document.getElementById("visitDate").value;
+    const estimated = Number(document.getElementById("estimatedCharges").value || 0);
+    if(!Number.isFinite(estimated) || estimated < 0){ alert("Estimated charges sahi enter karein."); return; }
+    const payload = {
+        assigned_mechanic_id: mechanicValue ? Number(mechanicValue) : null,
+        visit_date: visitDateValue ? new Date(visitDateValue).toISOString() : null,
+        visit_status: mechanicValue ? (visitStatus==="Not Assigned" ? "Assigned" : visitStatus) : "Not Assigned",
+        estimated_charges: estimated,
+        payment_status: document.getElementById("complaintPaymentStatus").value
+    };
+    const {data,error} = await supabaseClient.from("Complaints").update(payload).eq("id",Number(currentComplaint.id)).select("*");
+    if(error){ alert("Assignment save nahi hua:\n\n"+error.message+"\n\nSupabase SQL setup aur permissions check karein."); return; }
+    if(!data || !data.length){ alert("Update nahi hua. Supabase RLS UPDATE/SELECT policies check karein."); return; }
+    currentComplaint = data[0]; alert("✅ Mechanic assignment aur visit details save ho gayi."); await loadComplaints();
+}
 
 /* =====================================
    VIEW COMPLAINT
@@ -1510,6 +1463,12 @@ async function viewComplaint(id){
         .getElementById("viewStatus")
         .value =
         data.status || "Pending";
+
+    populateMechanicSelect(data.assigned_mechanic_id);
+    document.getElementById("visitDate").value = data.visit_date ? new Date(data.visit_date).toISOString().slice(0,16) : "";
+    document.getElementById("visitStatus").value = data.visit_status || (data.assigned_mechanic_id ? "Assigned" : "Not Assigned");
+    document.getElementById("estimatedCharges").value = data.estimated_charges ?? 0;
+    document.getElementById("complaintPaymentStatus").value = data.payment_status || "Unpaid";
 
 
     const photoBox =
@@ -2591,6 +2550,7 @@ function closeViewComplaint(){
    START
 ===================================== */
 
+document.querySelector('.dashboard .card[data-filter="all"]')?.classList.add('active-filter');
 checkAdminSession();
 
 </script>
