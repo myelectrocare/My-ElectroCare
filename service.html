@@ -4,8 +4,8 @@
 <body><main class="wrap"><section class="card"><h1>⚡ My ElectroCare</h1><div class="muted">Electronics Repair & Home Service</div><hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0"><h2>Appliance Service Passport</h2><div id="state" class="muted">Loading service history…</div></section><div id="content"></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 // Paste the SAME public project URL and anon/publishable key used by index.html. Never use service_role here.
-const SUPABASE_URL="PASTE_YOUR_EXISTING_SUPABASE_URL_HERE";
-const SUPABASE_ANON_KEY="PASTE_YOUR_EXISTING_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL="https://gbtqdwrrgcxomwhthban.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_UK8p20y1pifgQqEwxzo3Mw_Da5SKxD3";
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const esc=v=>String(v??"-").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>v?new Date(v).toLocaleString("en-IN"):"-";
