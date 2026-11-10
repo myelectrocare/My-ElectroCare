@@ -562,6 +562,8 @@ th{
 
                             <th>ID</th>
 
+                            <th>Complaint Date</th>
+
                             <th>Customer</th>
 
                             <th>Mobile</th>
@@ -630,6 +632,17 @@ th{
             <b>Complaint ID</b>
 
             <span id="viewId">
+                -
+            </span>
+
+        </div>
+
+
+        <div class="detail">
+
+            <b>Complaint Date</b>
+
+            <span id="viewComplaintDate">
                 -
             </span>
 
@@ -1137,6 +1150,18 @@ function setStatusFilter(status){
     renderComplaints();
 }
 
+function formatComplaintDate(value){
+    if(!value) return "-";
+    const date = new Date(value);
+    if(Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("en-GB", {
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric",
+        timeZone:"Asia/Kolkata"
+    });
+}
+
 function renderComplaints(){
     const list = document.getElementById("complaintList");
     const search = (document.getElementById("complaintSearch")?.value || "").trim().toLowerCase();
@@ -1148,13 +1173,13 @@ function renderComplaints(){
     const filterName = activeStatusFilter==="all" ? "All complaints" : activeStatusFilter+" complaints";
     document.getElementById("activeFilterLabel").innerText = `Showing: ${filterName} (${rows.length})`;
     if(!rows.length){
-        list.innerHTML = `<tr><td colspan="8" class="empty">No complaints match this filter/search.</td></tr>`;
+        list.innerHTML = `<tr><td colspan="9" class="empty">No complaints match this filter/search.</td></tr>`;
         return;
     }
     list.innerHTML = rows.map(c=>{
         const statusClass = String(c.status||"Pending").toLowerCase();
         return `<tr>
-            <td>${escapeHTML(c.id ?? "-")}</td><td>${escapeHTML(c.customer_name || "-")}</td>
+            <td>${escapeHTML(c.id ?? "-")}</td><td>${escapeHTML(formatComplaintDate(c.created_at))}</td><td>${escapeHTML(c.customer_name || "-")}</td>
             <td>${escapeHTML(c.mobile || "-")}</td><td>${escapeHTML(c.product || "-")}</td>
             <td>${escapeHTML(c.company || "-")}</td><td>${escapeHTML(c.problem || "-")}</td>
             <td><span class="status ${statusClass}">${escapeHTML(c.status || "Pending")}</span></td>
@@ -1171,9 +1196,9 @@ function exportComplaintsCSV(){
         return statusMatch && haystack.includes(search);
     });
     if(!rows.length){ alert("Export karne ke liye koi complaint nahi hai."); return; }
-    const columns = [["Complaint ID","id"],["Customer","customer_name"],["Mobile","mobile"],["Product","product"],["Company","company"],["Problem","problem"],["Status","status"],["Mechanic ID","assigned_mechanic_id"],["Visit Date","visit_date"],["Visit Status","visit_status"],["Estimated Charges","estimated_charges"],["Payment Status","payment_status"]];
+    const columns = [["Complaint ID","id"],["Complaint Date","created_at"],["Customer","customer_name"],["Mobile","mobile"],["Product","product"],["Company","company"],["Problem","problem"],["Status","status"],["Mechanic ID","assigned_mechanic_id"],["Visit Date","visit_date"],["Visit Status","visit_status"],["Estimated Charges","estimated_charges"],["Payment Status","payment_status"]];
     const csvCell = value => `"${String(value ?? "").replace(/"/g,'""')}"`;
-    const csv = [columns.map(x=>csvCell(x[0])).join(","), ...rows.map(row=>columns.map(x=>csvCell(row[x[1]])).join(","))].join("\r\n");
+    const csv = [columns.map(x=>csvCell(x[0])).join(","), ...rows.map(row=>columns.map(x=>csvCell(x[1]==="created_at" ? formatComplaintDate(row.created_at) : row[x[1]])).join(","))].join("\r\n");
     const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href=url; a.download=`My-ElectroCare-Complaints-${new Date().toISOString().slice(0,10)}.csv`;
@@ -1309,6 +1334,11 @@ async function viewComplaint(id){
         .innerText =
         data.id || "-";
 
+
+    document
+        .getElementById("viewComplaintDate")
+        .innerText =
+        formatComplaintDate(data.created_at);
 
     document
         .getElementById("viewCustomer")
