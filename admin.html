@@ -846,7 +846,13 @@ th{
 ===================================== -->
 <div id="invoiceModal" class="modal">
   <div class="modal-box invoice-modal-box">
-    <h2>🧾 My ElectroCare Invoice</h2>
+  <div class="invoice-brand">
+    <img src="my_electrocare_icon%20(1).png" alt="My ElectroCare Logo">
+    <div>
+        <h2>My ElectroCare</h2>
+        <p>Electronics Repair & Home Service</p>
+    </div>
+</div>
     <p style="color:#64748b;margin-top:-8px;">Complaint details are filled automatically. Add the repair/charge details below.</p>
 
     <div class="invoice-grid">
@@ -1868,7 +1874,14 @@ function renderInvoicePreview(invoice){
     const area = document.getElementById("invoicePrintArea");
     area.innerHTML = `
       <div class="brand">
-        <div><h2>⚡ My ElectroCare</h2><div>Electronics Repair & Home Service</div></div>
+      <div style="display:flex;align-items:center;gap:12px;">
+    <img src="my_electrocare_icon%20(1).png"
+         style="width:65px;height:65px;object-fit:contain;">
+    <div>
+        <h2>My ElectroCare</h2>
+        <div>Electronics Repair & Home Service</div>
+    </div>
+</div>
         <div style="text-align:right"><strong>INVOICE</strong><br>${escapeHTML(invoice.invoice_number)}<br>${date}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
